@@ -1,0 +1,127 @@
+---
+interface Props {
+  name?: string;
+  label?: string;
+  min?: number;
+  max?: number;
+  value?: number;
+}
+
+const {
+  name = "quantity",
+  label = "Quantity",
+  min = 1,
+  max = 10,
+  value = min,
+} = Astro.props;
+
+const id = `${name}`;
+const options = Array.from({ length: max - min + 1 }, (_, i) => min + i);
+---
+
+<quantity-selector value={value}>
+  <label for={id}>{label}</label>
+  <div class="control">
+    <select id={id} name={name}>
+      {
+        options.map((n) => (
+          <option value={n} selected={n === value}>
+            {n}
+          </option>
+        ))
+      }
+    </select>
+  </div>
+</quantity-selector>
+
+<script>
+  class QuantitySelector extends HTMLElement {
+    static observedAttributes = ["value"];
+
+    #select: HTMLSelectElement | null = null;
+
+    connectedCallback() {
+      this.#select = this.querySelector("select");
+      this.#select?.addEventListener("change", this.#onChange);
+    }
+
+    disconnectedCallback() {
+      this.#select?.removeEventListener("change", this.#onChange);
+    }
+
+    attributeChangedCallback(_name: string, oldValue: string | null, newValue: string | null) {
+      if (oldValue !== newValue && this.#select && this.#select.value !== newValue) {
+        this.#select.value = newValue ?? "";
+      }
+    }
+
+    get value(): number {
+      return Number(this.getAttribute("value") ?? this.#select?.value ?? 0);
+    }
+
+    set value(next: number) {
+      this.setAttribute("value", String(next));
+    }
+
+    #onChange = () => {
+      if (!this.#select) return;
+      this.setAttribute("value", this.#select.value);
+      this.dispatchEvent(
+        new CustomEvent("quantity-change", {
+          bubbles: true,
+          detail: { value: this.value },
+        }),
+      );
+    };
+  }
+
+  if (!customElements.get("quantity-selector")) {
+    customElements.define("quantity-selector", QuantitySelector);
+  }
+</script>
+
+<style>
+  quantity-selector {
+    display: block;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+  }
+
+  .control {
+    position: relative;
+  }
+
+  select {
+    width: 100%;
+    padding: 0.85rem 2.75rem 0.85rem 1rem;
+    font: inherit;
+    color: inherit;
+    background: #fff;
+    border: 1px solid #111;
+    border-radius: 6px;
+    appearance: none;
+    cursor: pointer;
+  }
+
+  select:focus-visible {
+    outline: 2px solid #111;
+    outline-offset: 2px;
+  }
+
+  .control::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 1.1rem;
+    width: 0.6rem;
+    height: 0.6rem;
+    border-right: 2px solid #111;
+    border-bottom: 2px solid #111;
+    transform: translateY(-70%) rotate(45deg);
+    pointer-events: none;
+  }
+</style>

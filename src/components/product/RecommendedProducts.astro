@@ -1,0 +1,101 @@
+---
+import type { Product } from "../../types";
+import { formatPrice } from "../../lib/format";
+
+interface Props {
+  products: Product[];
+  heading?: string;
+}
+
+const { products, heading = "Recommended for your dog" } = Astro.props;
+---
+
+<section class="recommended" aria-labelledby="recommended-heading">
+  <h2 id="recommended-heading">{heading}</h2>
+
+  {products.length === 0 && <p>No recommendations found for this profile.</p>}
+
+  {
+    products.length > 0 && (
+      <ul class="product-list">
+        {products.map((product) => (
+          <li class="product-card">
+            <img
+              src={product.image}
+              alt={product.name}
+              width="400"
+              height="400"
+              loading="lazy"
+              data-fallback="/images/placeholder.svg"
+            />
+            <h3>{product.name}</h3>
+            <p class="price">{formatPrice(product.price)}</p>
+            <p class="tags">{product.requirements.join(" · ")}</p>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</section>
+
+<script>
+  const useFallback = (img: HTMLImageElement) => {
+    const fallback = img.dataset.fallback;
+    if (fallback && img.src !== new URL(fallback, location.href).href) img.src = fallback;
+  };
+
+  document.querySelectorAll<HTMLImageElement>("img[data-fallback]").forEach((img) => {
+    img.addEventListener("error", () => useFallback(img), { once: true });
+    if (img.complete && img.naturalWidth === 0) useFallback(img);
+  });
+</script>
+
+<style>
+  .recommended {
+    margin-block: 3rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    margin: 0 0 1rem;
+  }
+
+  .product-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1.5rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .product-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .product-card img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 4px;
+    background: #eee;
+  }
+
+  .product-card h3 {
+    margin: 0.5rem 0 0;
+    font-size: 1rem;
+  }
+
+  .price {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .tags {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--colour-muted);
+  }
+</style>

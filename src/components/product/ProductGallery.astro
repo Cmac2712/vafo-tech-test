@@ -1,0 +1,118 @@
+---
+import type { GalleryImage } from "../../types";
+
+interface Props {
+  images: GalleryImage[];
+}
+
+const { images } = Astro.props;
+const [first] = images;
+---
+
+<product-gallery class="gallery">
+  <ul class="thumbs" aria-label="Product images">
+    {
+      images.map((image, i) => (
+        <li>
+          <button
+            type="button"
+            class="thumb"
+            aria-pressed={i === 0 ? "true" : "false"}
+            data-src={image.src}
+            data-alt={image.alt}
+          >
+            <img src={image.src} alt={image.alt} width="120" height="120" loading="lazy" />
+          </button>
+        </li>
+      ))
+    }
+  </ul>
+  <div class="main">
+    <img src={first?.src} alt={first?.alt} width="800" height="800" />
+  </div>
+</product-gallery>
+
+<script>
+  const activate = (buttons: HTMLButtonElement[], main: HTMLImageElement) => (chosen: HTMLButtonElement) => {
+    buttons.forEach((b) => b.setAttribute("aria-pressed", String(b === chosen)));
+    main.src = chosen.dataset.src ?? main.src;
+    main.alt = chosen.dataset.alt ?? main.alt;
+  };
+
+  class ProductGallery extends HTMLElement {
+    connectedCallback() {
+      const main = this.querySelector<HTMLImageElement>(".main img");
+      const buttons = Array.from(this.querySelectorAll<HTMLButtonElement>(".thumb"));
+      if (!main) return;
+      const select = activate(buttons, main);
+      buttons.forEach((b) => b.addEventListener("click", () => select(b)));
+    }
+  }
+
+  if (!customElements.get("product-gallery")) {
+    customElements.define("product-gallery", ProductGallery);
+  }
+</script>
+
+<style>
+  .gallery {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .thumbs {
+    display: none;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .thumb {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    background: none;
+    cursor: pointer;
+    overflow: hidden;
+  }
+
+  .thumb[aria-pressed="true"] {
+    border-color: var(--colour-text);
+  }
+
+  .thumb img,
+  .main img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    object-fit: cover;
+  }
+
+  .main img {
+    border-radius: 4px;
+  }
+
+  @media (max-width: 767px) {
+    .gallery {
+      margin-inline: calc(-1 * var(--gutter));
+    }
+
+    .main img {
+      border-radius: 0;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .gallery {
+      grid-template-columns: 120px 1fr;
+      align-items: start;
+    }
+
+    .thumbs {
+      display: grid;
+      gap: 0.75rem;
+    }
+  }
+</style>

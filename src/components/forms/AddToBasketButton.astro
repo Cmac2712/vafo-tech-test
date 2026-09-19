@@ -1,0 +1,76 @@
+<add-to-basket-button>
+  <button type="button">Add to Basket</button>
+</add-to-basket-button>
+
+<script>
+  const toEvent = () => new CustomEvent("add-to-basket", { bubbles: true });
+
+  const showFeedback = (button: HTMLButtonElement, idle: string, added: string) => {
+    button.textContent = added;
+    button.disabled = true;
+    window.setTimeout(() => {
+      button.textContent = idle;
+      button.disabled = false;
+    }, 1500);
+  };
+
+  class AddToBasketButton extends HTMLElement {
+    #button: HTMLButtonElement | null = null;
+
+    connectedCallback() {
+      this.#button = this.querySelector("button");
+      this.#button?.addEventListener("click", this.#onClick);
+    }
+
+    disconnectedCallback() {
+      this.#button?.removeEventListener("click", this.#onClick);
+    }
+
+    #onClick = () => {
+      if (!this.#button) return;
+      this.dispatchEvent(toEvent());
+      showFeedback(
+        this.#button,
+        "Add to Basket",
+        "Added to Basket",
+      );
+    };
+  }
+
+  if (!customElements.get("add-to-basket-button")) {
+    customElements.define("add-to-basket-button", AddToBasketButton);
+  }
+</script>
+
+<style>
+  add-to-basket-button {
+    display: block;
+  }
+
+  button {
+    width: 100%;
+    padding: 0.95rem 1rem;
+    font: inherit;
+    font-weight: 600;
+    color: #fff;
+    background: #111;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 150ms ease;
+  }
+
+  button:hover {
+    background: #333;
+  }
+
+  button:disabled {
+    background: #555;
+    cursor: default;
+  }
+
+  button:focus-visible {
+    outline: 2px solid #111;
+    outline-offset: 2px;
+  }
+</style>

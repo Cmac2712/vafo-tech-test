@@ -1,0 +1,79 @@
+---
+import SiteHeader from "../components/layout/SiteHeader.astro";
+
+interface Props {
+  title?: string;
+}
+
+const { title = "Pooch & Mutt" } = Astro.props;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <SiteHeader />
+    <main class="container">
+      <slot />
+    </main>
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --colour-text: #111;
+    --colour-muted: #6b6b6b;
+    --colour-accent: #c26fcf;
+    --colour-border: #d9d9d9;
+    --colour-panel: #f8f3f8;
+    --colour-panel-border: #e5dbe5;
+    --container-max: 1240px;
+    --gutter: 1rem;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    font-family: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--colour-text);
+    background: #fff;
+  }
+
+  img,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  .container {
+    width: 100%;
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  @media (min-width: 768px) {
+    :root {
+      --gutter: 2rem;
+    }
+  }
+</style>

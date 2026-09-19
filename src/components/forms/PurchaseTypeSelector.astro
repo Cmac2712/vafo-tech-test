@@ -1,0 +1,147 @@
+---
+interface Option {
+  value: string;
+  label: string;
+}
+
+interface Props {
+  name?: string;
+  legend?: string;
+  options?: Option[];
+  value?: string;
+}
+
+const {
+  name = "purchaseType",
+  legend = "Purchase type",
+  options = [
+    { value: "subscription", label: "Subscription" },
+    { value: "one-off", label: "One-off" },
+  ],
+  value = options[0]?.value,
+} = Astro.props;
+---
+
+<purchase-type-selector value={value}>
+  <fieldset>
+    <legend class="visually-hidden">{legend}</legend>
+    <div class="options">
+      {
+        options.map((option) => (
+          <label class="option">
+            <input
+              type="radio"
+              name={name}
+              value={option.value}
+              checked={option.value === value}
+            />
+            <span class="option-label">{option.label}</span>
+            <span class="radio" aria-hidden="true" />
+          </label>
+        ))
+      }
+    </div>
+  </fieldset>
+</purchase-type-selector>
+
+<script>
+  const toEvent = (value: string) =>
+    new CustomEvent("purchase-type-change", { bubbles: true, detail: { value } });
+
+  const checkedValue = (root: HTMLElement) =>
+    root.querySelector<HTMLInputElement>('input[type="radio"]:checked')?.value ?? "";
+
+  class PurchaseTypeSelector extends HTMLElement {
+    connectedCallback() {
+      this.addEventListener("change", this.#onChange);
+    }
+
+    disconnectedCallback() {
+      this.removeEventListener("change", this.#onChange);
+    }
+
+    get value(): string {
+      return this.getAttribute("value") ?? checkedValue(this);
+    }
+
+    #onChange = () => {
+      const value = checkedValue(this);
+      this.setAttribute("value", value);
+      this.dispatchEvent(toEvent(value));
+    };
+  }
+
+  if (!customElements.get("purchase-type-selector")) {
+    customElements.define("purchase-type-selector", PurchaseTypeSelector);
+  }
+</script>
+
+<style>
+  purchase-type-selector {
+    display: block;
+  }
+
+  fieldset {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .option {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .option input {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .radio {
+    flex: none;
+    width: 1rem;
+    height: 1rem;
+    border: 1.5px solid #111;
+    border-radius: 50%;
+    box-sizing: border-box;
+  }
+
+  .option:has(input:checked) {
+    border-color: #111;
+  }
+
+  .option:has(input:checked) .radio {
+    border-width: 4px;
+  }
+
+  .option:has(input:focus-visible) {
+    outline: 2px solid #111;
+    outline-offset: 2px;
+  }
+</style>

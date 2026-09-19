@@ -1,0 +1,186 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Breadcrumbs from "../components/layout/Breadcrumbs.astro";
+import ProductGallery from "../components/product/ProductGallery.astro";
+import PurchasePanel from "../components/product/PurchasePanel.astro";
+import RecommendedProducts from "../components/product/RecommendedProducts.astro";
+import AddToBasketButton from "../components/forms/AddToBasketButton.astro";
+import { pdpContent as product } from "../data/pdp";
+import { fetchRecommendations } from "../lib/api";
+import { formatPrice } from "../lib/format";
+import type { DogProfile } from "../types";
+
+export const prerender = false;
+
+const exampleDogProfile: DogProfile = {
+  age: "Adult",
+  requirements: ["Healthy skin"],
+  allergies: ["Lamb"],
+};
+
+const recommendations = await fetchRecommendations(exampleDogProfile, Astro.url);
+---
+
+<BaseLayout title={`${product.title} | Pooch & Mutt`}>
+  <div class="pdp">
+    <div class="pdp-breadcrumbs">
+      <Breadcrumbs items={product.breadcrumbs} />
+    </div>
+
+    <div class="pdp-gallery">
+      <ProductGallery images={product.images} />
+    </div>
+
+    <div class="pdp-info">
+      <h1 class="title">{product.title}</h1>
+
+      <p class="price-row">
+        <span class="price">{formatPrice(product.price)}</span>
+        {product.comparePrice && <s class="compare">{formatPrice(product.comparePrice)}</s>}
+        {product.points && <span class="points">+{product.points} PoochPoints</span>}
+      </p>
+
+      <PurchasePanel />
+
+      <div class="description">
+        <p>{product.description}</p>
+        <ul>
+          {product.highlights.map((item) => <li>{item}</li>)}
+        </ul>
+      </div>
+
+      <div class="cta">
+        <AddToBasketButton />
+      </div>
+    </div>
+  </div>
+
+  <RecommendedProducts products={recommendations} />
+
+  <section class="api-response" aria-labelledby="raw-heading">
+    <h2 id="raw-heading">API response</h2>
+    <pre>{JSON.stringify(recommendations, null, 2)}</pre>
+  </section>
+</BaseLayout>
+
+<style>
+  .pdp {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    padding-block: 0.75rem 2rem;
+  }
+
+  .pdp-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .title {
+    margin: 0;
+    font-size: 1.75rem;
+    line-height: 1.2;
+  }
+
+  .price-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin: 0;
+    font-size: 1.25rem;
+  }
+
+  .price {
+    font-weight: 700;
+    color: var(--colour-accent);
+  }
+
+  .compare {
+    color: var(--colour-muted);
+  }
+
+  .points {
+    color: var(--colour-accent);
+  }
+
+  .description {
+    color: #333;
+  }
+
+  .description p {
+    margin: 0 0 0.5rem;
+  }
+
+  .description ul {
+    margin: 0;
+    padding-left: 1.25rem;
+  }
+
+  /* Mobile: the CTA sticks to the bottom of the viewport while the info column is in view */
+  .cta {
+    position: sticky;
+    bottom: 0;
+    margin-inline: calc(-1 * var(--gutter));
+    padding: 1rem var(--gutter);
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    background: #fff;
+    border-top: 1px solid var(--colour-border);
+  }
+
+  .api-response h2 {
+    font-size: 1.25rem;
+  }
+
+  pre {
+    overflow-x: auto;
+    padding: 1rem;
+    background: #f5f5f5;
+    border-radius: 4px;
+    font-size: 0.8rem;
+  }
+
+  @media (min-width: 1024px) {
+    .pdp {
+      grid-template-columns: minmax(0, 1fr) 370px;
+      grid-template-areas:
+        "gallery crumbs"
+        "gallery info";
+      grid-template-rows: auto 1fr;
+      column-gap: 2rem;
+      row-gap: 0.75rem;
+      align-items: start;
+      padding-block: 1.5rem 3rem;
+    }
+
+    .pdp-breadcrumbs {
+      grid-area: crumbs;
+    }
+
+    .pdp-gallery {
+      grid-area: gallery;
+    }
+
+    .pdp-info {
+      grid-area: info;
+    }
+
+    .title {
+      font-size: 2rem;
+    }
+
+    /* Desktop: CTA sits in flow between the purchase panel and the description */
+    .cta {
+      position: static;
+      order: 0;
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    .description {
+      order: 1;
+    }
+  }
+</style>

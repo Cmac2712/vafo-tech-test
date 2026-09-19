@@ -1,0 +1,119 @@
+---
+interface Option {
+  value: number;
+  label: string;
+}
+
+interface Props {
+  name?: string;
+  label?: string;
+  options?: Option[];
+  value?: number;
+}
+
+const {
+  name = "deliveryFrequency",
+  label = "Delivery Frequency",
+  options = [
+    { value: 14, label: "14 days" },
+    { value: 30, label: "30 days" },
+    { value: 60, label: "60 days" },
+  ],
+  value = 30,
+} = Astro.props;
+
+const id = `${name}`;
+---
+
+<delivery-frequency-select value={value}>
+  <label for={id}>{label}</label>
+  <div class="control">
+    <select id={id} name={name}>
+      {
+        options.map((option) => (
+          <option value={option.value} selected={option.value === value}>
+            {option.label}
+          </option>
+        ))
+      }
+    </select>
+  </div>
+</delivery-frequency-select>
+
+<script>
+  const toEvent = (value: number) =>
+    new CustomEvent("frequency-change", { bubbles: true, detail: { value } });
+
+  class DeliveryFrequencySelect extends HTMLElement {
+    #select: HTMLSelectElement | null = null;
+
+    connectedCallback() {
+      this.#select = this.querySelector("select");
+      this.#select?.addEventListener("change", this.#onChange);
+    }
+
+    disconnectedCallback() {
+      this.#select?.removeEventListener("change", this.#onChange);
+    }
+
+    get value(): number {
+      return Number(this.getAttribute("value") ?? this.#select?.value ?? 0);
+    }
+
+    #onChange = () => {
+      if (!this.#select) return;
+      this.setAttribute("value", this.#select.value);
+      this.dispatchEvent(toEvent(this.value));
+    };
+  }
+
+  if (!customElements.get("delivery-frequency-select")) {
+    customElements.define("delivery-frequency-select", DeliveryFrequencySelect);
+  }
+</script>
+
+<style>
+  delivery-frequency-select {
+    display: block;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+  }
+
+  .control {
+    position: relative;
+  }
+
+  select {
+    width: 100%;
+    padding: 0.85rem 2.75rem 0.85rem 1rem;
+    font: inherit;
+    color: inherit;
+    background: #fff;
+    border: 1px solid #111;
+    border-radius: 6px;
+    appearance: none;
+    cursor: pointer;
+  }
+
+  select:focus-visible {
+    outline: 2px solid #111;
+    outline-offset: 2px;
+  }
+
+  .control::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 1.1rem;
+    width: 0.6rem;
+    height: 0.6rem;
+    border-right: 2px solid #111;
+    border-bottom: 2px solid #111;
+    transform: translateY(-70%) rotate(45deg);
+    pointer-events: none;
+  }
+</style>

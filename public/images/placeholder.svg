@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-label="Image coming soon">
+  <rect width="800" height="800" fill="#e6eef2"/>
+  <circle cx="400" cy="360" r="150" fill="#ffffff" fill-opacity="0.5"/>
+  <text x="400" y="620" text-anchor="middle" font-family="system-ui, sans-serif" font-size="40" fill="#1a1a1a">Image coming soon</text>
+</svg>
